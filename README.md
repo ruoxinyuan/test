@@ -89,5 +89,3 @@ For questions, please contact:
 - **Your Name**  
 - Email: [your.email@example.com](mailto:your.email@example.com)  
 ```
-
-现在整个 README 都是代码块形式了，方便你复制粘贴到 GitHub 项目中直接使用！
