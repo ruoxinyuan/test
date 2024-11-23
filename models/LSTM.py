@@ -10,34 +10,42 @@ class LSTMClassifier(nn.Module):
         self.dropout = nn.Dropout(0.1)
 
     def forward(self, x, lengths):
+        # Initialize hidden state and cell state with zeros
         h0 = torch.zeros(self.lstm.num_layers, x.size(0), self.lstm.hidden_size).to(x.device)
         c0 = torch.zeros(self.lstm.num_layers, x.size(0), self.lstm.hidden_size).to(x.device)
 
         if isinstance(lengths, int):
+            # Handle the case where lengths is a single integer
             sorted_lengths = torch.tensor([lengths]).to(x.device)
             sorted_x = x
         else:
-            # 排序输入和长度，以便最长的序列是第一个
+            # Sort input and lengths so that the longest sequence is first
             sorted_lengths, sort_idx = lengths.sort(descending=True)
             sorted_x = x[sort_idx]
 
+        # Pack the input tensor to handle variable-length sequences
         packed_x = nn.utils.rnn.pack_padded_sequence(sorted_x, sorted_lengths.cpu(), batch_first=True, enforce_sorted=False)
         packed_output, _ = self.lstm(packed_x, (h0, c0))
+        
+        # Unpack the output back to padded tensor format
         output, output_lengths = nn.utils.rnn.pad_packed_sequence(packed_output, batch_first=True)
         
-        # 获取每个序列的最后一个有效时间步的索引
+        # Get the index of the last valid time step for each sequence
         last_indices = (output_lengths - 1).long()
 
-        # 直接使用索引获取最后一个时间步的输出
+        # Retrieve the output corresponding to the last valid time step
         last_output = output[torch.arange(output.size(0)), last_indices, :]
 
         if not isinstance(lengths, int):
-            # 由于我们对输入进行了排序，现在需要恢复原始顺序
+            # Restore the original order of sequences
             _, original_idx = sort_idx.sort()
             last_output = last_output[original_idx]
 
+        # Apply layer normalization to the last output
         last_output = self.layer_norm(last_output)
+        # Apply dropout for regularization
         last_output = self.dropout(last_output)
         
+        # Pass the output through a fully connected layer to produce logits
         logits = self.fc(last_output)
         return logits
