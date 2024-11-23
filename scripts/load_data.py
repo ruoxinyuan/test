@@ -14,8 +14,8 @@ output_dir = "data"
 os.makedirs(output_dir, exist_ok=True)
 
 # Load data
-actions_path = 'data\cc_data_seqs.csv'
-responses_path = 'data\cc_data_responses.csv'
+actions_path = 'data\Raw_data\cc_data_seqs.csv'
+responses_path = 'data\Raw_data\cc_data_responses.csv'
 df, labels_df = load_data(actions_path, responses_path)
 
 # Extract response labels
