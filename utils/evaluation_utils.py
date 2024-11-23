@@ -1,6 +1,6 @@
 from sklearn.metrics import accuracy_score, roc_auc_score
 
-def compute_metrics(y_true, y_pred):
+def compute_metrics(y_true, y_pred, y_probability):
     """
     Compute evaluation metrics for binary classification.
 
@@ -13,6 +13,6 @@ def compute_metrics(y_true, y_pred):
     """
     metrics = {
         "accuracy": accuracy_score(y_true, y_pred),
-        "AUC": roc_auc_score(y_true, y_pred),
+        "AUC": roc_auc_score(y_true, y_probability)
     }
     return metrics

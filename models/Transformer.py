@@ -4,12 +4,22 @@ import torch.nn as nn
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 class TransformerClassifier(nn.Module):
-    def __init__(self, input_dim, model_dim, num_heads, num_layers, dim_feedforward, max_seq_len):
+    def __init__(self, input_dim, model_dim, num_heads, num_layers, dim_feedforward):
         super(TransformerClassifier, self).__init__()
         self.embedding = nn.Linear(input_dim, model_dim)
-        self.position_encoding = nn.Parameter(torch.zeros(1, max_seq_len, model_dim)) # Learnable positional encoding
-        encoder_layer = nn.TransformerEncoderLayer(d_model=model_dim, nhead=num_heads, dim_feedforward=dim_feedforward, dropout=0.1, batch_first=True)
+
+        # Initialize position encoding for a reasonable default maximum sequence length
+        self.position_encoding = nn.Parameter(torch.zeros(1, 500, model_dim))  # Default max_seq_len = 500
+        
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=model_dim, 
+            nhead=num_heads, 
+            dim_feedforward=dim_feedforward, 
+            dropout=0.1, 
+            batch_first=True
+        )
         self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+
         self.layer_norm = nn.LayerNorm(model_dim)
         self.fc = nn.Linear(model_dim, 1)
         
@@ -66,9 +76,17 @@ class TransformerClassifier(nn.Module):
         return result_tensor
 
     def forward(self, x, lengths):
-        x = self.embedding(x) + self.position_encoding[:, :x.size(1), :]
+        max_seq_len = x.size(1)
 
-        attention_mask = self.create_attention_mask(lengths, x.size(1)).to(x.device)
+        if max_seq_len > self.position_encoding.size(1):
+            raise ValueError(
+                f"Input sequence length ({max_seq_len}) exceeds position encoding size ({self.position_encoding.size(1)}). "
+                "Increase the default size of position_encoding."
+            )
+    
+        x = self.embedding(x) + self.position_encoding[:, :max_seq_len, :]
+
+        attention_mask = self.create_attention_mask(lengths, max_seq_len).to(x.device)
 
         x = self.transformer(x, src_key_padding_mask=attention_mask)
 

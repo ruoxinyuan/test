@@ -2,7 +2,6 @@ import torch
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
-from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import TensorDataset
 
 def load_data(sequences_path, responses_path):
@@ -44,13 +43,21 @@ def pad_sequences(sequences, max_length):
     Pad sequences to the same length (max_length) with custom padding values.
     """
     padded_sequences = []
+
     for sequence in sequences:
         last_time = sequence[-1][1]  # Last time value in the sequence
         padding_value = (-1, last_time)  # Padding value
-        padded_sequence = sequence + [padding_value] * (max_length - len(sequence))
-        padded_sequences.append(torch.tensor(padded_sequence, dtype=torch.float32))
+
+        pad_len = max_length - sequence.size(0)
+        
+        if pad_len > 0:
+            pad_tensor = torch.tensor([padding_value] * pad_len, dtype=sequence.dtype)
+            padded_sequence = torch.cat((sequence, pad_tensor), dim=0)
+        else:
+            padded_sequence = sequence  # No padding needed
     
-    # Convert the list of padded sequences into a tensor
+        padded_sequences.append(padded_sequence)
+
     return torch.stack(padded_sequences, dim=0)
 
 def split_data(sequences, labels, lengths, test_size=0.2, random_state=52):

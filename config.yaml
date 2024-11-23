@@ -1,0 +1,40 @@
+models:
+  - name: GRU
+    input_size: 2
+    hidden_size: 128
+    num_layers: 2
+    num_epochs: 1
+    learning_rate: 0.001
+
+  - name: LSTM
+    input_size: 2
+    hidden_size: 128
+    num_layers: 2
+    num_epochs: 1
+    learning_rate: 0.001
+
+  - name: LogisticRegression
+    max_N: 2
+    num_epochs: 1
+    learning_rate: 0.001
+
+  - name: Transformer
+    input_dim: 2
+    model_dim: 128
+    num_heads: 4
+    num_layers: 2
+    dim_feedforward: 256
+    num_epochs: 1
+    learning_rate: 0.0001
+
+training:
+  batch_size: 128  
+  device: "cuda"
+
+testing:
+  batch_size: 128  
+  device: "cuda"
+
+paths:
+  data: "data/"
+  output_model: "output/"

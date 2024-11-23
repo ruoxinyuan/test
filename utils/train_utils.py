@@ -1,6 +1,6 @@
 import torch
 
-def train_one_epoch(model, data_loader, criterion, optimizer):
+def train_one_epoch(model, data_loader, criterion, optimizer, device):
     """
     Train the model for one epoch.
 
@@ -14,10 +14,11 @@ def train_one_epoch(model, data_loader, criterion, optimizer):
         Average loss for the epoch.
     """
     model.train()
-    total_loss = 0.0
+    total_loss = 0
 
     for batch_idx, (inputs, labels, lengths) in enumerate(data_loader):
-        inputs, labels = inputs.to(model.device), labels.to(model.device)
+        # Move data to the target device
+        inputs, labels, lengths = inputs.to(device), labels.to(device), lengths.to(device)
 
         optimizer.zero_grad()
 
