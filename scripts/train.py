@@ -60,7 +60,7 @@ def main():
     paths_config = config["paths"]
 
     # Ensure the output directory exists
-    output_dir = Path(paths_config["output_model"])
+    output_dir = Path(paths_config["output"])
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Set device

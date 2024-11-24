@@ -37,4 +37,4 @@ testing:
 
 paths:
   data: "data/"
-  output_model: "output/"
+  output: "output/"

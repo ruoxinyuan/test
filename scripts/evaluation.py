@@ -112,7 +112,7 @@ def main():
     )
     
     # Directory for trained models
-    output_dir = Path(paths_config["output_model"])
+    output_dir = Path(paths_config["output"])
     if not output_dir.exists():
         raise FileNotFoundError(f"Checkpoints directory not found: {output_dir}")
 
