@@ -3,24 +3,51 @@ import numpy as np
 from scipy.optimize import minimize
 from scipy.interpolate import BSpline
 
-def compute_probability_curve(model, test_seq, seq_len, device):
+def prob_curves_for_long_seqs(model, X_test, y_test, lengths, device, min_length=10):
     """
-    Compute the probability curves for the model.
+    Compute probability curves for sequences longer than a specified min_length.   
     Args:
-        test_seq (torch.Tensor): Test sequence with shape (2, seq_len).
-        seq_len (int): Length of the test sequence.
-        device (str): Device for computation ('cpu' or 'cuda').
+        X_test (torch.Tensor): Test sequences, a tensor of shape (num_samples, seq_len).
+        y_test (torch.Tensor): True labels for the test sequences.
+        lengths (torch.Tensor): Lengths of the test sequences.
+        min_length (int, optional): Minimum sequence length to process. Default is 10.  
     Returns:
-        np.array: Probability curve with shape (seq_len, ).
+        dict: A dictionary containing probability curves, keyed by sequence index.
+        dict: A dictionary containing labels for the sequences with probability curves.
     """
-    prob_curve = []
-    for t in range(1, seq_len + 1):
-        current_seq = test_seq[:t].unsqueeze(0).to(device)  # Add batch dimension
-        with torch.no_grad():
-            logits = model(current_seq, torch.tensor([t], device=device))
-            probs = torch.sigmoid(logits)
-        prob_curve.append(probs.squeeze().cpu().numpy())
-    return np.array(prob_curve)
+    
+    def compute_probability_curve(model, test_seq, seq_len, device):
+        """
+        Compute the probability curves for the model.
+        Args:
+            test_seq (torch.Tensor): Test sequence with shape (2, seq_len).
+            seq_len (int): Length of the test sequence.
+            device (str): Device for computation ('cpu' or 'cuda').
+        Returns:
+            np.array: Probability curve with shape (seq_len, ).
+        """
+        prob_curve = []
+        for t in range(1, seq_len + 1):
+            current_seq = test_seq[:t].unsqueeze(0).to(device)  # Add batch dimension
+            with torch.no_grad():
+                logits = model(current_seq, torch.tensor([t], device=device))
+                probs = torch.sigmoid(logits)
+            prob_curve.append(probs.squeeze().cpu().numpy())
+        return np.array(prob_curve)
+    
+    model.eval()  # Ensure the model is in evaluation mode
+    model_prob_curves = {}
+    labels = {}
+
+    # Loop through test sequences
+    for i, (test_seq, test_label, test_len) in enumerate(zip(X_test, y_test, lengths)):
+        if test_len > min_length:
+            # Compute probability curve for the current sequence
+            model_prob_curves[i] = compute_probability_curve(model, test_seq, test_len, device)
+            # Store the corresponding label
+            labels[i] = test_label.numpy()
+
+    return model_prob_curves, labels
 
 
 def save_probability_curves(prob_curves, labels, save_path):

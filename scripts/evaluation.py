@@ -15,7 +15,7 @@ if project_root not in sys.path:
 from models import GRUClassifier, LSTMClassifier, LogisticRegressionClassifier, TransformerClassifier
 
 # Import utilities
-from utils.evaluation_utils import compute_metrics
+from utils.evaluation_utils import evaluate_model, compute_metrics
 
 # Load configuration
 def load_config(config_path="config.yaml"):
@@ -123,35 +123,18 @@ def main():
         model_name = model_config["name"]
         print(f"Evaluating {model_name} model...")
 
-        # Initialize model and and load weights
+        # Initialize model and load weights
         model = initialize_model(model_config, train_loader).to(device)
 
         model_path = output_dir / f"{model_name}.pth"
         if not model_path.exists():
-            print(f"Model checkpoint not found: {model_path}")
+            print(f"Model not found: {model_path}")
             continue
         
         model.load_state_dict(torch.load(model_path))
-        model.eval()
 
         # Evaluate
-        y_true, y_pred, y_probability = [], [], []
-        with torch.no_grad():
-            for x, y, lengths in test_loader:
-                x, y, lengths = x.to(device), y.to(device), lengths.to(device)
-
-                logits = model(x, lengths)
-
-                probability = torch.sigmoid(logits.squeeze(dim=-1))
-
-                y_true.append(y.cpu())
-                y_probability.append(probability.cpu())
-                y_pred.append((probability >= 0.5).int().cpu())
-
-        # Concatenate results
-        y_true = torch.cat(y_true)
-        y_probability = torch.cat(y_probability)
-        y_pred = torch.cat(y_pred)
+        y_true, y_pred, y_probability = evaluate_model(model, test_loader, device=device, threshold=0.5)
 
         model_predictions[model_name] = y_pred
 
