@@ -1,10 +1,9 @@
-import sys
-import os
-from pathlib import Path
-import torch
-import torch.nn as nn
-from torch.utils.data import DataLoader, TensorDataset
 import yaml
+import torch
+from torch.utils.data import DataLoader, TensorDataset
+import os
+import sys
+from pathlib import Path
 
 # Add the project root directory to sys.path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -15,7 +14,8 @@ if project_root not in sys.path:
 from models import GRUClassifier, LSTMClassifier, LogisticRegressionClassifier, TransformerClassifier
 
 # Import utilities
-from utils.train_utils import train_one_epoch, save_model
+from utils.curve_utils import compute_probability_curve, save_probability_curves, fit_bspline_curves, save_spline_curves
+from utils.plot_utils import plot_probability_curves, plot_spline_curves
 
 # Load configuration
 def load_config(config_path="config.yaml"):
@@ -50,7 +50,8 @@ def initialize_model(model_config, data_loader=None):
     
     else:
         raise ValueError(f"Unknown model: {model_name}")
-    
+
+
 def main():
     # Load configuration
     config = load_config("config.yaml")
@@ -73,37 +74,72 @@ def main():
     X_train_loaded = torch.load(data_dir / "X_train.pt")
     y_train_loaded = torch.load(data_dir / "y_train.pt")
     lengths_train_loaded = torch.load(data_dir / "lengths_train.pt") 
-
-    # Create DataLoader
     train_loader = DataLoader(
         TensorDataset(X_train_loaded, y_train_loaded, lengths_train_loaded),
         batch_size=training_config["batch_size"],
         shuffle=True,
     )
 
-    # Train each model in the configuration
+    X_test_loaded = torch.load(data_dir / "X_test.pt")
+    y_test_loaded = torch.load(data_dir / "y_test.pt")
+    lengths_test_loaded = torch.load(data_dir / "lengths_test.pt") 
+
+    # Compute probability curves for each model in the configuration
+    prob_curves = {}
+    labels = {}
     for model_config in model_configs:
         model_name = model_config["name"]
-        print(f"Training {model_name} model...")
+        print(f"Processing {model_name} model...")
 
         # Initialize model and move to device
         model = initialize_model(model_config, train_loader).to(device)
+        model.eval()
 
-        # Define loss and optimizer
-        criterion = nn.BCEWithLogitsLoss()
-        optimizer = torch.optim.Adam(model.parameters(), lr=model_config["learning_rate"])
+        # Compute probability curves for sequences longer than 10
+        model_prob_curves = {}
+        for i, (test_seq, test_label, test_len) in enumerate(zip(X_test_loaded, y_test_loaded, lengths_test_loaded)):
+            if test_len > 10:
+                model_prob_curves[i] = compute_probability_curve(model, test_seq, test_len, device)
+                labels[i] = y_test_loaded[i].numpy()
 
-        # Training loop
-        for epoch in range(model_config["num_epochs"]):
-            train_loss = train_one_epoch(model, train_loader, criterion, optimizer, device)
-            print(f"{model_name} - Epoch {epoch + 1}, Loss: {train_loss:.4f}")
+        prob_curves[model_name] = model_prob_curves
+        
 
-        # Save model
-        model_save_path = output_dir / f"{model_name}.pth"
-        save_model(model, model_save_path)
-        print(f"Model {model_name} saved to {model_save_path}.\n")
+    # Save probability curves
+    save_path1 = output_dir / "probability_curves.npz"
+    save_probability_curves(prob_curves, labels, save_path1)
+    print(f"Probability curves saved to {save_path1}")
 
-    print(f"Training completed for all models.")
+    # Plot raw probability curves
+    plot_probability_curves(
+        prob_curves=prob_curves, 
+        labels=labels, 
+        max_samples=25, 
+        grid_size=(5, 5), 
+        figsize=(12, 12), 
+        save_path=output_dir / "probability_curves.png"
+    )
+
+    # Fit B-spline curves and save results
+    print("B-spline fitting ...")
+    fine_grained_spline, spline_curve = fit_bspline_curves(prob_curves, labels)
+        
+    # Save B-spline curves
+    save_path2 = output_dir / "B-spline_curves.npz"
+    save_spline_curves(fine_grained_spline, spline_curve, save_path2)
+    print(f"B-spline curves saved to {save_path2}")
+
+    # Plot B-spline curves and probability curves
+    plot_spline_curves(
+        fine_grained_spline=fine_grained_spline,
+        prob_curves=prob_curves, 
+        labels=labels, 
+        max_samples=25, 
+        grid_size=(5, 5), 
+        figsize=(12, 12), 
+        save_path=output_dir / "spline_curves.png"
+    )
+
 
 if __name__ == "__main__":
     main()
