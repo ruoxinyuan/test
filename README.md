@@ -56,27 +56,27 @@ After training, the trained models will be saved in the `output/` folder for ana
 ## Results  
 ### Sample Question: Climate Control
 
-![figure1_climate_control](figures\figure1_climate_control.png)  
+![figure1_climate_control](figures/figure1_climate_control.png)  
 
 Data regarding students’ problem-solving processes were collected through computer log files, in the form of a sequence of time-stamped events.
 
-![table1_log_file_data](figures\table1_log_file_data.png)  
+![table1_log_file_data](figures/table1_log_file_data.png)  
 
 ### Probability Curves Generated
 
-![curves](figures\curves.png) 
+![curves](figures/curves.png) 
 
 ### Downstream Tasks
 
-![table2_key_actions](figures\table2_key_actions.png) 
+![table2_key_actions](figures/table2_key_actions.png) 
 
-![classification](figures\classification.png) 
+![classification](figures/classification.png) 
 
 ### Model-free
 
-![table3_accuracy](figures\table3_accuracy.png) 
+![table3_accuracy](figures/table3_accuracy.png) 
 
-![similarity](figures\similarity.png) 
+![similarity](figures/similarity.png) 
 
 ---
 
