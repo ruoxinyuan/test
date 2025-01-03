@@ -1,6 +1,6 @@
-# Dynamic Prediction Framework for CPS Process Data  
+# Model-Agnostic Prediction Framework for CPS Process Data  
 
-This repository contains the implementation of the models and the analysis framework presented in our paper **"Statistical Analysis of Complex Problem-Solving Process Data: A Framework for Dynamic Prediction Using Probability Curves."**  
+This repository contains the implementation of the models and the analysis framework presented in our paper **"An Implementation-Friendly Model-Agnostic Approach for Process Data Analysis."**  
 It provides tools for analyzing CPS process data, fitting probability curves, and solving downstream tasks.  
 
 ---
@@ -72,7 +72,7 @@ Data regarding students’ problem-solving processes were collected through comp
 
 ![classification](figures/classification.png) 
 
-### Model-free
+### Model-Agnostic
 
 ![table3_accuracy](figures/table3_accuracy.png) 
 
@@ -81,21 +81,10 @@ Data regarding students’ problem-solving processes were collected through comp
 ---
 
 ## Citation  
-If you use this code or framework in your research, please cite our paper:  
-```plaintext
-"  "  
-Authors: [Your Name(s)]  
-Journal/Conference, Year.  
-```  
+If you use this code or framework in your research, please cite our paper. 
 
 ---
 
 ## License  
 This project is licensed under the Apache License. See the [LICENSE](LICENSE) file for details.  
 
----
-
-## Contact  
-For questions, please contact:  
-- **Your Name**  
-- Email: [your.email@example.com](mailto:your.email@example.com)  
