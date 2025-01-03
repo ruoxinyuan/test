@@ -10,7 +10,7 @@ It provides tools for analyzing CPS process data, fitting probability curves, an
 - Construct dynamic probability curves to characterize the complete response process of students and demonstrate that this characterization is model-free.
 - Fits model outputs using B-splines for further estimation. 
 - Applicable to a wide range of downstream tasks, such as individual classification and identification of key actions.
-- Test on several questions of PISA 2012 problem-solving assesment.  
+- Test on several questions of PISA 2012 problem-solving assesment and proves that the proposed framework is item-free, meaning it does not rely on question type or task-specific prior expert knowledge.
 
 ---
 
